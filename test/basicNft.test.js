@@ -15,7 +15,7 @@ const { developmentChains } = require("../helper-hardhat-config")
               basicNft = await ethers.getContract("BasicNFT")
           })
 
-          describe("constructer", function () {
+          describe("constructer", async function () {
               it("Mints NFT succesfully and updates properly", async function () {
                   const txResponse = await basicNft.mintNft()
                   await txResponse.wait(1)

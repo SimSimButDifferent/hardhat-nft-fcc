@@ -14,9 +14,8 @@ contract BasicNFT is ERC721 {
     }
 
     function mintNft() public returns (uint256) {
+        s_tokenCounter = s_tokenCounter + 1;
         _safeMint(msg.sender, s_tokenCounter);
-        s_tokenCounter++;
-        return s_tokenCounter;
     }
 
     function tokenURI(uint256 tokenId) public view override returns (string memory) {
@@ -25,7 +24,7 @@ contract BasicNFT is ERC721 {
     }
 
     // Getter functions
-    function getTokenCounter(uint256 /* tokenId */) public view returns (uint256) {
+    function getTokenCounter() public view returns (uint256) {
         return s_tokenCounter;
     }
 }
