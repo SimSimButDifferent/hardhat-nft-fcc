@@ -1,5 +1,5 @@
 const { assert } = require("chai")
-const { network, deployments, ethers, getNamedAccounts } = require("hardhat")
+const { network, deployments, ethers } = require("hardhat")
 const { developmentChains } = require("../helper-hardhat-config")
 
 !developmentChains.includes(network.name)
@@ -16,21 +16,38 @@ const { developmentChains } = require("../helper-hardhat-config")
           })
 
           describe("constructer", async function () {
-              it("Mints NFT succesfully and updates properly", async function () {
-                  const txResponse = await basicNft.mintNft()
-                  await txResponse.wait(1)
-                  tokenCounter = await basicNft.getTokenCounter()
-                  assert.equal(tokenCounter.toString(), "1")
+              it("Initializes NFT correctly", async function () {
+                  const name = await basicNft.name()
+                  const symbol = await basicNft.symbol()
+                  const tokenCounter = await basicNft.getTokenCounter()
+
+                  assert.equal(name, "Dogie")
+                  assert.equal(symbol, "Dog")
+                  assert.equal(tokenCounter, "0")
               })
           })
 
-          describe("Token URI", async function () {
-              it("Has the correct token URI", async function () {
+          describe("Mint NFT", async function () {
+              beforeEach(async function () {
+                  const txResponse = await basicNft.mintNft()
+                  await txResponse.wait(1)
+              })
+
+              it("Mints NFT succesfully and updates properly", async function () {
                   const tokenURI = await basicNft.tokenURI(0)
-                  assert.equal(
-                      tokenURI,
-                      "ipfs://bafybeig37ioir76s7mg5oobetncojcm3c3hxasyd4rvid4jqhy4gkaheg4/?filename=0-PUG.json"
-                  )
+                  const tokenCounter = await basicNft.getTokenCounter()
+
+                  assert.equal(tokenCounter.toString(), "1")
+                  assert.equal(tokenURI, await basicNft.TOKEN_URI())
+              })
+
+              it("Shows correct balance and owner of NFT", async function () {
+                  const deployerAddress = deployer.address
+                  const deployerBalance = await basicNft.balanceOf(deployerAddress)
+                  const owner = await basicNft.ownerOf("1")
+
+                  assert.equal(deployerBalance.toString(), "1")
+                  assert.equal(owner, deployerAddress)
               })
           })
       })
