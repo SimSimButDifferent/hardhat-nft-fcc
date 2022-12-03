@@ -1,13 +1,9 @@
-# Sample Hardhat Project
+# Hardhat Nft's
 
-This project demonstrates a basic Hardhat use case. It comes with a sample contract, a test for that contract, and a script that deploys that contract.
+# Basic NFT
 
-Try running some of the following tasks:
+Basic NFT with an non random assigned ipfs URI. In this case a cute Puppy.
 
-```shell
-npx hardhat help
-npx hardhat test
-REPORT_GAS=true npx hardhat test
-npx hardhat node
-npx hardhat run scripts/deploy.js
-```
+# Randomipfs NFT
+
+A mintable NFT with 3 levels of rarity with a minting price. In this case three different types of dogs. Contract owner can withdraw the eth that was payed.
