@@ -19,9 +19,18 @@ const { developmentChains } = require("../helper-hardhat-config")
               it("Mints NFT succesfully and updates properly", async function () {
                   const txResponse = await basicNft.mintNft()
                   await txResponse.wait(1)
-                  const tokenURI = await basicNft.tokenURI(0)
                   tokenCounter = await basicNft.getTokenCounter()
                   assert.equal(tokenCounter.toString(), "1")
+              })
+          })
+
+          describe("Token URI", async function () {
+              it("Has the correct token URI", async function () {
+                  const tokenURI = await basicNft.tokenURI(0)
+                  assert.equal(
+                      tokenURI,
+                      "ipfs://bafybeig37ioir76s7mg5oobetncojcm3c3hxasyd4rvid4jqhy4gkaheg4/?filename=0-PUG.json"
+                  )
               })
           })
       })
