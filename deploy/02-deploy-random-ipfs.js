@@ -7,6 +7,11 @@ module.exports = async ({ getNamedAccounts, deployments }) => {
     const { deployer } = await getNamedAccounts()
     const chainId = network.config.chainId
 
+    // get the IPFS hashes of our images
+    if (process.env.UPLOAD_TO_PINATA == "true") {
+        tokenUris = await handleTokenUris()
+    }
+
     let vrfCoordinatorV2Address, subscriptionId
 
     if (developmentChains.includes(network.name)) {
@@ -30,4 +35,12 @@ module.exports = async ({ getNamedAccounts, deployments }) => {
         // tokenUri's,
         networkConfig[chainId].mintFee,
     ]
+}
+
+async function handleTokenUris() {
+    tokenUris = []
+    // store the image on ipfs
+    // store the metadata on pinata
+
+    return tokenUris
 }
