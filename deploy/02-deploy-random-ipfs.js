@@ -1,9 +1,21 @@
 const { network } = require("hardhat")
 const { developmentChains, networkConfig } = require("../helper-hardhat-config")
 const { verify } = require("../utils/verify")
-const { storeImages } = require("../utils/uploadToPinata")
+const { storeImages, storeTokenUriMetadata } = require("../utils/uploadToPinata")
 
 const imagesLocation = "./images/random/"
+
+const metadataTemplate = {
+    name: "",
+    description: "",
+    image: "",
+    attributes: [
+        {
+            trait_type: "Cuteness",
+            value: 100,
+        },
+    ],
+}
 
 module.exports = async ({ getNamedAccounts, deployments }) => {
     const { deploy, log } = deployments
@@ -29,7 +41,8 @@ module.exports = async ({ getNamedAccounts, deployments }) => {
     }
 
     log("-----------------------------------------")
-    await storeImages(imagesLocation)
+    // await storeImages(imagesLocation)
+
     // const args = [
     //     vrfCoordinatorV2Address,
     //     subscriptionId,
@@ -44,7 +57,22 @@ async function handleTokenUris() {
     tokenUris = []
     // store the image on ipfs
     // store the metadata on pinata
+    const { responses: imageUploadResponses, files } = await storeImages(imagesLocation)
 
+    for (imageUploadResponseIndex in imageUploadResponses) {
+        // create metadata then upload metadata
+        let tokenUriMetadata = { ...metadataTemplate }
+        // pug.png
+        tokenUriMetadata.name = files[imageUploadResponseIndex].replace(".png", "")
+        tokenUriMetadata.description = `An adorable ${tokenUriMetadata.name} pup!`
+        tokenUriMetadata.image = `ipfs://${imageUploadResponses[imageUploadResponseIndex].IpfsHash}`
+        console.log(`Uploading ${tokenUriMetadata.name}...`)
+        // store the JSON to pinata / IPFS
+        const metadataUploadResponse = await storeTokenUriMetadata(tokenUriMetadata)
+        tokenUris.push(`ipfs://${metadataUploadResponse.IpfsHash}`)
+    }
+    console.log("Token URI's uploaded! They are:")
+    console.log(tokenUris)
     return tokenUris
 }
 
