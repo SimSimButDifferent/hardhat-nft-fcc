@@ -60,7 +60,7 @@ module.exports = async ({ getNamedAccounts, deployments }) => {
         networkConfig[chainId].mintFee,
     ]
 
-    const randomIpfsNft = await deploy("RandomipfsNft", {
+    const randomipfsNft = await deploy("RandomipfsNft", {
         from: deployer,
         args: args,
         log: true,
