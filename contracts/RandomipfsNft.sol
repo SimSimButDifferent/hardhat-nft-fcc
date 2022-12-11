@@ -10,6 +10,7 @@ import "@openzeppelin/contracts/access/Ownable.sol";
 error RandomipfsNft__RangeOutOfBounds();
 error RandomipfsNft__NeedMoreETHSent();
 error RandomipfsNft__TransactionFailed();
+error RandomipfsNft__AlreadyInitialized();
 
 contract RandomipfsNft is VRFConsumerBaseV2, ERC721URIStorage, Ownable {
     // when we mint an nft, we will trigger a chainlink VRF call
@@ -41,6 +42,7 @@ contract RandomipfsNft is VRFConsumerBaseV2, ERC721URIStorage, Ownable {
     uint256 internal constant MAX_CHANCE_VALUE = 100;
     string[] internal s_dogTokenUris;
     uint256 internal immutable i_mintFee;
+    bool private s_initialized;
 
     // Events
     event NftRequested(uint256 indexed requestId, address requester);
@@ -60,6 +62,7 @@ contract RandomipfsNft is VRFConsumerBaseV2, ERC721URIStorage, Ownable {
         i_callbackGasLimit = callbackGasLimit;
         s_dogTokenUris = dogTokenUris;
         i_mintFee = mintFee;
+        _initializeContract(dogTokenUris);
         s_tokenCounter = 0;
     }
 
@@ -90,6 +93,14 @@ contract RandomipfsNft is VRFConsumerBaseV2, ERC721URIStorage, Ownable {
         emit NftMinted(dogBreed, dogOwner);
     }
 
+    function _initializeContract(string[3] memory dogTokenUris) private {
+        if (s_initialized) {
+            revert RandomipfsNft__AlreadyInitialized();
+        }
+        s_dogTokenUris = dogTokenUris;
+        s_initialized = true;
+    }
+
     function withdraw() public onlyOwner {
         uint256 amount = address(this).balance;
         (bool success, ) = payable(msg.sender).call{value: amount}("");
@@ -110,7 +121,7 @@ contract RandomipfsNft is VRFConsumerBaseV2, ERC721URIStorage, Ownable {
     }
 
     function getChanceArray() public pure returns (uint256[3] memory) {
-        return [10, 30, MAX_CHANCE_VALUE];
+        return [10, 40, MAX_CHANCE_VALUE];
     }
 
     function getMintFee() public view returns (uint256) {
@@ -123,5 +134,9 @@ contract RandomipfsNft is VRFConsumerBaseV2, ERC721URIStorage, Ownable {
 
     function getTokenCounter() public view returns (uint256) {
         return s_tokenCounter;
+    }
+
+    function getInitialized() public view returns (bool) {
+        return s_initialized;
     }
 }
