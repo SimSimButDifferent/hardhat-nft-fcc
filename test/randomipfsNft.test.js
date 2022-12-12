@@ -1,6 +1,6 @@
 // fulfill random words.
 
-const { assert } = require("chai")
+const { assert, expect } = require("chai")
 const { network, deployments, ethers, getNamedAccounts } = require("hardhat")
 const { developmentChains } = require("../helper-hardhat-config")
 
@@ -23,8 +23,29 @@ const { developmentChains } = require("../helper-hardhat-config")
               it("initialises NFT correctly", async function () {
                   const dogTokenUriZero = await randomIpfsNft.getDogTokenUris(0)
                   const initialized = await randomIpfsNft.getInitialized()
+                  const name = await randomIpfsNft.name()
+                  const symbol = await randomIpfsNft.symbol()
                   assert(dogTokenUriZero.includes("ipfs://"))
                   assert.equal(initialized, true)
+                  assert.equal(name, "Random IPFS NFT")
+                  assert.equal(symbol, "RAN")
+              })
+          })
+
+          describe("request nft", function () {
+              it("reverts when payment not sent", async function () {
+                  await expect(randomIpfsNft.requestNft()).to.be.revertedWith(
+                      "RandomipfsNft__NeedMoreETHSent"
+                  )
+              })
+
+              it("reverts if payment amount is less than the mint fee", async function () {
+                  const fee = await randomIpfsNft.getMintFee()
+                  await expect(
+                      randomIpfsNft.requestNft({
+                          value: fee.sub(ethers.utils.parseEther("0.001")),
+                      })
+                  ).to.be.revertedWith("RandomIpfsNft__NeedMoreETHSent")
               })
           })
       })
