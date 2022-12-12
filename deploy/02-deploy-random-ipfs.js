@@ -38,7 +38,7 @@ module.exports = async ({ getNamedAccounts, deployments }) => {
     let vrfCoordinatorV2Address, subscriptionId, vrfCoordinatorV2Mock
 
     if (developmentChains.includes(network.name)) {
-        const vrfCoordinatorV2Mock = await ethers.getContract("VRFCoordinatorV2Mock")
+        vrfCoordinatorV2Mock = await ethers.getContract("VRFCoordinatorV2Mock")
         vrfCoordinatorV2Address = vrfCoordinatorV2Mock.address
         const tx = await vrfCoordinatorV2Mock.createSubscription()
         const txReciept = await tx.wait(1)
@@ -66,7 +66,9 @@ module.exports = async ({ getNamedAccounts, deployments }) => {
         waitConfirmations: network.config.blockConfirmations || 1,
     })
 
-    await vrfCoordinatorV2Mock.addConsumer(subscriptionId, randomipfsNft.address)
+    if (chainId == 31337) {
+        await vrfCoordinatorV2Mock.addConsumer(subscriptionId.toNumber(), randomipfsNft.address)
+    }
 
     log("-----------------------------------------")
 
