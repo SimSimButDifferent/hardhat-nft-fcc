@@ -2,12 +2,12 @@
 
 const { assert, expect } = require("chai")
 const { network, deployments, ethers, getNamedAccounts } = require("hardhat")
-const { developmentChains } = require("../helper-hardhat-config")
+const { developmentChains, networkConfig } = require("../helper-hardhat-config")
 
 !developmentChains.includes(network.name)
     ? describe.skip
     : describe("Random Ipfs NFT unit tests", function () {
-          let randomIpfsNft, deployer, accounts, mintFee, vrfCoordinatorV2Mock
+          let randomIpfsNft, deployer, accounts, vrfCoordinatorV2Mock
           chainId = network.config.chainId
 
           beforeEach(async function () {
@@ -16,7 +16,6 @@ const { developmentChains } = require("../helper-hardhat-config")
               await deployments.fixture(["mocks", "randomipfs"])
               randomIpfsNft = await ethers.getContract("RandomipfsNft")
               vrfCoordinatorV2Mock = await ethers.getContract("VRFCoordinatorV2Mock", deployer)
-              mintFee = await randomIpfsNft.getMintFee()
           })
 
           describe("constructor", function () {
@@ -40,12 +39,21 @@ const { developmentChains } = require("../helper-hardhat-config")
               })
 
               it("reverts if payment amount is less than the mint fee", async function () {
-                  const fee = await randomIpfsNft.getMintFee()
+                  const mintFee = await randomIpfsNft.getMintFee()
                   await expect(
                       randomIpfsNft.requestNft({
-                          value: fee.sub(ethers.utils.parseEther("0.001")),
+                          value: mintFee.sub(ethers.utils.parseEther("0.001")),
                       })
-                  ).to.be.revertedWith("RandomIpfsNft__NeedMoreETHSent")
+                  ).to.be.revertedWith("RandomipfsNft__NeedMoreETHSent")
+              })
+
+              it("emits an event and starts a random words request", async function () {
+                  const mintFee = await randomIpfsNft.getMintFee()
+                  await expect(
+                      randomIpfsNft.requestNft({
+                          value: mintFee.toString()
+                      })
+                  ).to.emit(randomIpfsNft, "NftRequested")
               })
           })
       })

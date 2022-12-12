@@ -35,7 +35,7 @@ module.exports = async ({ getNamedAccounts, deployments }) => {
         tokenUris = await handleTokenUris()
     }
 
-    let vrfCoordinatorV2Address, subscriptionId
+    let vrfCoordinatorV2Address, subscriptionId, vrfCoordinatorV2Mock
 
     if (developmentChains.includes(network.name)) {
         const vrfCoordinatorV2Mock = await ethers.getContract("VRFCoordinatorV2Mock")
@@ -66,6 +66,11 @@ module.exports = async ({ getNamedAccounts, deployments }) => {
         log: true,
         waitConfirmations: network.config.blockConfirmations || 1,
     })
+
+    // if (developmentChains.includes(network.name)) {
+    //     await vrfCoordinatorV2Mock.addConsumer(subscriptionId, randomipfsNft.address)
+    // }
+
     log("-----------------------------------------")
 
     // Verify the deployment
