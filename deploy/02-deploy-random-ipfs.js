@@ -66,7 +66,9 @@ module.exports = async ({ getNamedAccounts, deployments }) => {
         waitConfirmations: network.config.blockConfirmations || 1,
     })
 
-    await vrfCoordinatorV2Mock.addConsumer(subscriptionId, randomipfsNft.address)
+    if (chainId == 31337) {
+        await vrfCoordinatorV2Mock.addConsumer(subscriptionId.toNumber(), randomipfsNft.address)
+    }
 
     log("-----------------------------------------")
 
