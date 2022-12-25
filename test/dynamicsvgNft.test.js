@@ -50,15 +50,15 @@ const lowTokenUri =
                   const counter = await dynamicSvgNft.getTokenCounter()
                   await expect(mintNft).to.emit(dynamicSvgNft, "CreatedNFT")
                   assert.equal(counter, "1")
-                  const tokenURI = await dynamicSvgNft.tokenURI(1)
+                  const tokenURI = await dynamicSvgNft.tokenURI(0)
                   assert.equal(tokenURI, highTokenUri)
               })
 
-              it("Changes tokenURI when price is higher", async function () {
-                  const higherHighVal = ethers.utils.parseEther("2000000000000000000")
-                  await dynamicSvgNft.mintNft(higherHighVal)
-                  const tokenURI2 = await dynamicSvgNft.tokenURI(1)
-                  assert.equal(tokenURI2, lowTokenUri)
+              it("Chooses different tokenURI when price is higher", async function () {
+                  const highVal = ethers.utils.parseEther("2000000")
+                  await dynamicSvgNft.mintNft(highVal)
+                  const tokenURI = await dynamicSvgNft.tokenURI(0)
+                  assert.equal(tokenURI, lowTokenUri)
               })
           })
 
@@ -67,6 +67,18 @@ const lowTokenUri =
                   await expect(dynamicSvgNft.tokenURI(100)).to.be.revertedWith(
                       "ERC_721Metadata_URI_QueryFor_NonExistantToken"
                   )
+              })
+
+              it("Switches the tokenURI when the price changes", async function () {
+                  const highVal = ethers.utils.parseEther("100")
+                  tx = await dynamicSvgNft.mintNft(highVal)
+                  const tokenURI = await dynamicSvgNft.tokenURI(0)
+                  assert.equal(tokenURI, highTokenUri)
+                  const lowValue = ethers.utils.parseEther("99")
+                  updatedAnswerTx = await mockV3Aggregator.updateAnswer(lowValue.toString())
+                  updatedAnswerTx.wait(1)
+                  updatedTokenURI = await dynamicSvgNft.tokenURI(0)
+                  assert.equal(updatedTokenURI, lowTokenUri)
               })
           })
       })
