@@ -47,13 +47,69 @@ const { developmentChains, networkConfig } = require("../helper-hardhat-config")
                   ).to.be.revertedWith("RandomipfsNft__NeedMoreETHSent")
               })
 
-              it("emits an event and starts a random words request", async function () {
+              it("emits an event begins a random word request", async function () {
                   const mintFee = await randomIpfsNft.getMintFee()
                   await expect(
                       randomIpfsNft.requestNft({
-                          value: mintFee.toString()
+                          value: mintFee.toString(),
                       })
                   ).to.emit(randomIpfsNft, "NftRequested")
+              })
+          })
+
+          describe("fulfillRandomWords", function () {
+              it("mints an NFT after a random number is returned", async function () {
+                  await new Promise(async (resolve, reject) => {
+                      randomIpfsNft.once("NftMinted", async function () {
+                          try {
+                              const tokenURI = await randomIpfsNft.tokenURI(0)
+                              const tokenCounter = await randomIpfsNft.getTokenCounter()
+                              assert.equal(tokenURI.toString().includes("ipfs://"), true)
+                              assert.equal(tokenCounter.toString(), "1")
+                              resolve()
+                          } catch (e) {
+                              console.log(e)
+                              reject(e)
+                          }
+                      })
+                      try {
+                          const fee = await randomIpfsNft.getMintFee()
+                          const requestNftResponse = await randomIpfsNft.requestNft({
+                              value: fee.toString(),
+                          })
+                          const requestReciept = await requestNftResponse.wait(1)
+                          await vrfCoordinatorV2Mock.fulfillRandomWords(
+                              requestReciept.events[1].args.requestId,
+                              randomIpfsNft.address
+                          )
+                      } catch (e) {
+                          console.log(e)
+                          reject(e)
+                      }
+                  })
+              })
+          })
+
+          describe("getBreedFromModedRng", function () {
+              it("Should return a Pug if rng is less than 10", async function () {
+                  const expectedValue = await randomIpfsNft.getBreedFromModdedRng(7)
+                  assert.equal(0, expectedValue)
+              })
+
+              it("Should return a Shiba-Inu if rng is between 10 - 39", async function () {
+                  const expectedValue = await randomIpfsNft.getBreedFromModdedRng(24)
+                  assert.equal(1, expectedValue)
+              })
+
+              it("Should return a St. Bernard if rng is less than 40 - 99", async function () {
+                  const expectedValue = await randomIpfsNft.getBreedFromModdedRng(87)
+                  assert.equal(2, expectedValue)
+              })
+
+              it("Should revert in rng returns anything above 99", async function () {
+                  await expect(randomIpfsNft.getBreedFromModdedRng(100)).to.be.revertedWith(
+                      "RandomipfsNft__RangeOutOfBounds"
+                  )
               })
           })
       })
