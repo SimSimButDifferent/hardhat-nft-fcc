@@ -1,9 +1,8 @@
 const { assert, expect } = require("chai")
 const { network, deployments, ethers, getNamedAccounts } = require("hardhat")
-const { isCallTrace } = require("hardhat/internal/hardhat-network/stack-traces/message-trace")
 const { developmentChains, networkConfig } = require("../helper-hardhat-config")
 
-const lowSVGImageuri =
+const lowSVGImageUri =
     "data:image/svg+xml;base64,PD94bWwgdmVyc2lvbj0iMS4wIiBzdGFuZGFsb25lPSJubyI/Pgo8c3ZnIHdpZHRoPSIxMDI0cHgiIGhlaWdodD0iMTAyNHB4IiB2aWV3Qm94PSIwIDAgMTAyNCAxMDI0IiB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciPgogIDxwYXRoIGZpbGw9IiMzMzMiIGQ9Ik01MTIgNjRDMjY0LjYgNjQgNjQgMjY0LjYgNjQgNTEyczIwMC42IDQ0OCA0NDggNDQ4IDQ0OC0yMDAuNiA0NDgtNDQ4Uzc1OS40IDY0IDUxMiA2NHptMCA4MjBjLTIwNS40IDAtMzcyLTE2Ni42LTM3Mi0zNzJzMTY2LjYtMzcyIDM3Mi0zNzIgMzcyIDE2Ni42IDM3MiAzNzItMTY2LjYgMzcyLTM3MiAzNzJ6Ii8+CiAgPHBhdGggZmlsbD0iI0U2RTZFNiIgZD0iTTUxMiAxNDBjLTIwNS40IDAtMzcyIDE2Ni42LTM3MiAzNzJzMTY2LjYgMzcyIDM3MiAzNzIgMzcyLTE2Ni42IDM3Mi0zNzItMTY2LjYtMzcyLTM3Mi0zNzJ6TTI4OCA0MjFhNDguMDEgNDguMDEgMCAwIDEgOTYgMCA0OC4wMSA0OC4wMSAwIDAgMS05NiAwem0zNzYgMjcyaC00OC4xYy00LjIgMC03LjgtMy4yLTguMS03LjRDNjA0IDYzNi4xIDU2Mi41IDU5NyA1MTIgNTk3cy05Mi4xIDM5LjEtOTUuOCA4OC42Yy0uMyA0LjItMy45IDcuNC04LjEgNy40SDM2MGE4IDggMCAwIDEtOC04LjRjNC40LTg0LjMgNzQuNS0xNTEuNiAxNjAtMTUxLjZzMTU1LjYgNjcuMyAxNjAgMTUxLjZhOCA4IDAgMCAxLTggOC40em0yNC0yMjRhNDguMDEgNDguMDEgMCAwIDEgMC05NiA0OC4wMSA0OC4wMSAwIDAgMSAwIDk2eiIvPgogIDxwYXRoIGZpbGw9IiMzMzMiIGQ9Ik0yODggNDIxYTQ4IDQ4IDAgMSAwIDk2IDAgNDggNDggMCAxIDAtOTYgMHptMjI0IDExMmMtODUuNSAwLTE1NS42IDY3LjMtMTYwIDE1MS42YTggOCAwIDAgMCA4IDguNGg0OC4xYzQuMiAwIDcuOC0zLjIgOC4xLTcuNCAzLjctNDkuNSA0NS4zLTg4LjYgOTUuOC04OC42czkyIDM5LjEgOTUuOCA4OC42Yy4zIDQuMiAzLjkgNy40IDguMSA3LjRINjY0YTggOCAwIDAgMCA4LTguNEM2NjcuNiA2MDAuMyA1OTcuNSA1MzMgNTEyIDUzM3ptMTI4LTExMmE0OCA0OCAwIDEgMCA5NiAwIDQ4IDQ4IDAgMSAwLTk2IDB6Ii8+Cjwvc3ZnPgo="
 
 const highSVGImageUri =
@@ -38,9 +37,36 @@ const lowTokenUri =
                   const priceFeed = await dynamicSvgNft.getPriceFeed()
                   assert.equal(name, "Dynamic SVG NFT")
                   assert.equal(symbol, "DSN")
-                  assert.equal(lowSVG, lowSVGImageuri)
+                  assert.equal(lowSVG, lowSVGImageUri)
                   assert.equal(highSVG, highSVGImageUri)
                   assert.equal(priceFeed, mockV3Aggregator.address)
+              })
+          })
+
+          describe("mint NFT", function () {
+              it("Succesfully mints NFT and emits an event", async function () {
+                  const highVal = ethers.utils.parseEther("1")
+                  const mintNft = await dynamicSvgNft.mintNft(highVal)
+                  const counter = await dynamicSvgNft.getTokenCounter()
+                  await expect(mintNft).to.emit(dynamicSvgNft, "CreatedNFT")
+                  assert.equal(counter, "1")
+                  const tokenURI = await dynamicSvgNft.tokenURI(1)
+                  assert.equal(tokenURI, highTokenUri)
+              })
+
+              it("Changes tokenURI when price is higher", async function () {
+                  const higherHighVal = ethers.utils.parseEther("2000000000000000000")
+                  await dynamicSvgNft.mintNft(higherHighVal)
+                  const tokenURI2 = await dynamicSvgNft.tokenURI(1)
+                  assert.equal(tokenURI2, lowTokenUri)
+              })
+          })
+
+          describe("token URI", function () {
+              it("reverts if non-existant tokenId entered", async function () {
+                  await expect(dynamicSvgNft.tokenURI(100)).to.be.revertedWith(
+                      "ERC_721Metadata_URI_QueryFor_NonExistantToken"
+                  )
               })
           })
       })
