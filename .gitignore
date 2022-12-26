@@ -101,5 +101,3 @@ lint/tmp/
 gas-report.txt
 .issue.md
 typechain-types
-
-deploy/04-mint.js
